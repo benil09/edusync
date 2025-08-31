@@ -64,7 +64,8 @@ export const signup = async (req, res) => {
       !lastName ||
       !password ||
       !year ||
-      !branch
+      !branch ||
+      !role
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -103,7 +104,7 @@ export const signup = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         year: user.year,
-        role,
+        role: user.role,
         branch: user.branch,
       },
     });

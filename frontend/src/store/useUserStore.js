@@ -1,6 +1,6 @@
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import { create } from "zustand";
+import axios from "../lib/axios";
 
 export const useUserStore = create((set) => ({
   user: null,
@@ -26,6 +26,7 @@ export const useUserStore = create((set) => ({
     }
 
     try {
+      console.log("Sending signup request");
       const response = await axios.post("/auth/signup", {
         email,
         username,
@@ -34,13 +35,15 @@ export const useUserStore = create((set) => ({
         password,
         year,
         branch,
-        role,
+        role: role ? role.toLowerCase() : "student",
       });
+      console.log("Signup response : ", response);
+
       set({ user: response.data.user, loading: false });
       toast.success("Signup successful");
     } catch (error) {
       set({ loading: false });
-      console.log("Error in signup store : ", error);
+      console.log("Error in signup store : ", error.response?.data);
       toast.error(error?.response?.data?.message || "Signup failed");
     }
   },

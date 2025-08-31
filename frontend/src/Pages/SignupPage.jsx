@@ -1,10 +1,80 @@
-import React from 'react'
-import { Link } from "react-router-dom";
-import { User, Mail, Lock } from "lucide-react";
 import { motion } from "framer-motion";
-
+import {
+  BookOpen,
+  Calendar,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Hash,
+  Loader,
+  Lock,
+  Mail,
+  User,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
+import { useUserStore } from "../store/useUserStore";
 
 const SignupPage = () => {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "",
+    year: "",
+    branch: "",
+    username: "",
+  });
+  const validate = () => {
+    if (!formData.firstName.trim())
+      return toast.error("First name is required");
+    if (!formData.lastName.trim()) return toast.error("Last name is required");
+    if (!formData.email.trim()) return toast.error("email is required");
+    if (!/\S+@\S+\.\S+/.test(formData.email))
+      return toast.error("Invalid email format");
+    if (!formData.password) return toast.error("password is required");
+    if (formData.password.length < 6)
+      return toast.error("password must be atleast 6 character");
+
+    if (formData.password !== formData.confirmPassword)
+      return toast.error("Passwords do not match");
+
+    return true;
+  };
+  const navigate = useNavigate();
+  const { signup, loading } = useUserStore();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const success = validate();
+    if (success === true) {
+      await signup( formData.email,
+      formData.username,
+      formData.firstName,
+      formData.lastName,
+      formData.password,
+      formData.confirmPassword,
+      formData.year,
+      formData.branch,
+      formData.role);
+    }
+  }
+
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
+  // Toggle function for password visibility
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+  const toggleConfirmPasswordVisibility = () => {
+    setConfirmPasswordVisible(!confirmPasswordVisible);
+  };
+
   return (
     <div className="flex h-screen">
       {/* Left Section */}
@@ -23,12 +93,16 @@ const SignupPage = () => {
           >
             Signup to edu<span className="text-orange-500">Connect</span>
           </motion.h2>
-          <form className="space-y-4">
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center bg-gray-200 rounded-xl">
                 <User className="ml-3 text-gray-500" size={20} />
                 <input
                   type="text"
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
                   placeholder="First Name"
                   required
                   className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0"
@@ -38,6 +112,10 @@ const SignupPage = () => {
                 <User className="ml-3 text-gray-500" size={20} />
                 <input
                   type="text"
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
                   placeholder="Last Name"
                   required
                   className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0"
@@ -47,7 +125,11 @@ const SignupPage = () => {
             <div className="flex items-center bg-gray-200 rounded-xl">
               <Mail className="ml-3 text-gray-500" size={20} />
               <input
-                type="mail"
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 placeholder="Email"
                 required
                 className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0"
@@ -56,35 +138,153 @@ const SignupPage = () => {
             <div className="flex items-center bg-gray-200 rounded-xl">
               <Lock className="ml-3 text-gray-500" size={20} />
               <input
-                type="password"
+                type={passwordVisible ? "text" : "password"}
                 placeholder="Password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 required
                 className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0"
               />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="mr-3 text-gray-500 cursor-pointer"
+              >
+                {passwordVisible ? <Eye size={20} /> : <EyeOff size={20} />}
+              </button>
             </div>
             <div className="flex items-center bg-gray-200 rounded-xl">
               <Lock className="ml-3 text-gray-500" size={20} />
               <input
-                type="password"
+                type={confirmPasswordVisible ? "text" : "password"}
+                value={formData.confirmPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirmPassword: e.target.value })
+                }
                 placeholder="Confirm Password"
                 required
                 className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0"
               />
-            </div>
-            <Link to="/signup2" >
-              <motion.button
-               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-                type="submit"
-                className="w-full py-3 bg-orange-500 rounded-full text-white font-semibold hover:bg-orange-600 transition duration-200 cursor-pointer flex justify-center"
+              <button
+                type="button"
+                onClick={toggleConfirmPasswordVisibility}
+                className="mr-3 text-gray-500 cursor-pointer"
               >
-                Next
-              </motion.button>
-            </Link>
+                {confirmPasswordVisible ? (
+                  <Eye size={20} />
+                ) : (
+                  <EyeOff size={20} />
+                )}
+              </button>
+            </div>
+
+            <div className="flex items-center bg-gray-200 rounded-xl">
+              <User className="ml-3 text-gray-500" size={20} />
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) =>
+                  setFormData({ ...formData, username: e.target.value })
+                }
+                placeholder="Username"
+                required
+                className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0"
+              />
+              
+            </div>
+
+            <div className="flex items-center bg-gray-200 rounded-xl">
+              <GraduationCap className="ml-3 text-gray-500" size={20} />
+              <select
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                required
+                className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0 appearance-none"
+              >
+                <option value="" disabled hidden>
+                  Select Role
+                </option>
+                <option value="student">student</option>
+                <option
+                  value="faculty
+                "
+                >
+                  faculty
+                </option>
+              </select>
+              <ChevronDown className="mr-3 text-gray-500" size={20} />
+            </div>
+
+            
+
+            <div className="flex items-center bg-gray-200 rounded-xl">
+              <Calendar className="ml-3 text-gray-500" size={20} />
+              <select
+                value={formData.year}
+                onChange={(e) =>
+                  setFormData({ ...formData, year: e.target.value })
+                }
+                required
+                className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0 appearance-none"
+              >
+                <option value="" disabled hidden>
+                  Select Year
+                </option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+              </select>
+              <ChevronDown className="mr-3 text-gray-500" size={20} />
+            </div>
+
+            <div className="flex items-center bg-gray-200 rounded-xl">
+              <BookOpen className="ml-3 text-gray-500" size={20} />
+              <select
+                value={formData.branch}
+                onChange={(e) =>
+                  setFormData({ ...formData, branch: e.target.value })
+                }
+                required
+                className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0 appearance-none"
+              >
+                <option value="" disabled hidden>
+                  Select Branch
+                </option>
+                <option value="cse">Computer Science</option>
+                <option value="ece">Electronics</option>
+                <option value="mech">Mechanical</option>
+                <option value="civil">Civil</option>
+              </select>
+              <ChevronDown className="mr-3 text-gray-500" size={20} />
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="submit"
+              className="w-full py-3 bg-orange-500 rounded-full text-white font-semibold hover:bg-orange-600 transition duration-200 cursor-pointer flex justify-center"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Loader className="h-5 w-5 animate-spin" aria-hidden="true" />
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <> Signup </>
+              )}
+            </motion.button>
           </form>
 
           <div className="flex justify-center text-sm text-gray-600">
-            <Link to="/login" className="text-[12px] md:text-sm hover:underline">
+            <Link
+              to="/login"
+              className="text-[12px] md:text-sm hover:underline"
+            >
               Already have an account?{" "}
               <span className="text-orange-500">Login</span>
             </Link>
@@ -97,7 +297,10 @@ const SignupPage = () => {
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.1, transition: { type: "spring", stiffness: 300 } }}
+            whileHover={{
+              scale: 1.1,
+              transition: { type: "spring", stiffness: 300 },
+            }}
             whileTap={{ scale: 0.95 }}
             className="w-full flex   bg-gray-200 items-center justify-center gap-2 py-3  rounded-full hover:bg-gray-100 hover:border-black transition cursor-pointer"
           >
@@ -112,10 +315,7 @@ const SignupPage = () => {
       </motion.div>
 
       {/* Right Section (Hidden on small devices) */}
-       <div
-        
-        className="hidden md:flex w-1/2 relative bg-gradient-to-br from-primary via-theme to-secondary overflow-hidden"
-      >
+      <div className="hidden md:flex w-1/2 relative bg-gradient-to-br from-primary via-theme to-secondary overflow-hidden">
         {/* SVG Pattern Overlay */}
         <svg
           className="absolute inset-0 w-full h-full bg-opacity-20 pointer-events-none z-20"
@@ -162,7 +362,7 @@ const SignupPage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SignupPage
+export default SignupPage;
