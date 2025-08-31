@@ -2,12 +2,22 @@ import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { Route, Routes,Navigate } from "react-router-dom";
 import Footer from "./Components/Footer.jsx";
-import Navbar from "./Components/Navbar.jsx";
+import Layout from "./Components/Layout.jsx";
 import Home from "./Pages/Home.jsx";
 import LoginPage from "./Pages/LoginPage.jsx";
 import SignupPage from "./Pages/SignupPage.jsx";
 import SignupPage2 from "./Pages/SignupPage2.jsx";
 import { useUserStore } from "./store/useUserStore.js";
+import MainPage from "./Pages/MainPage.jsx";
+import Notes from "./Pages/MainPages/Notes.jsx";
+import Chat from "./Pages/MainPages/Chat.jsx";
+import Confession from "./Pages/MainPages/Confession.jsx";
+import Poll from "./Pages/MainPages/Poll.jsx";
+import Notification from "./Pages/MainPages/Notification.jsx";
+import Assignment from "./Pages/MainPages/Assignment.jsx";
+import Profile from "./Pages/MainPages/Profile.jsx";
+import Setting from "./Pages/MainPages/Setting.jsx";
+
 
 function App() {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
@@ -33,13 +43,22 @@ function App() {
     );
   return (
     <>
-      {user && <Navbar />}
       <Routes>
+        <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/main" />} />
+        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/main" />} />
+        <Route path="/" element={ <Home /> } />
 
-        <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/" />} />
-        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="/" element={ user ? <Home /> : <Navigate to="/login" /> } />
-
+        <Route element={<Layout />}>
+          <Route path="/main" element={ user ? <MainPage /> : <Navigate to="/login" /> } />
+          <Route path="/notes" element={ user ? <Notes /> : <Navigate to="/login" /> } />
+          <Route path="/chat" element={ user ? <Chat /> : <Navigate to="/login" /> } />
+          <Route path="/confession" element={ user ? <Confession /> : <Navigate to="/login" /> } />
+          <Route path="/poll" element={ user ? <Poll /> : <Navigate to="/login" /> } />
+          <Route path="/notification" element={ user ? <Notification /> : <Navigate to="/login" /> } />
+          <Route path="/assignment" element={ user ? <Assignment /> : <Navigate to="/login" /> } />
+          <Route path="/profile" element={ user ? <Profile /> : <Navigate to="/login" /> } />
+          <Route path="/setting" element={ user ? <Setting /> : <Navigate to="/login" /> } />
+        </Route>
       </Routes>
       <Toaster position="top-right" />
       <Footer />

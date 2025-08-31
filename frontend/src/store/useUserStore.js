@@ -74,13 +74,17 @@ export const useUserStore = create((set) => ({
     set({ checkingAuth: true });
     try {
       const response = await axios.get("/auth/profile");
-      console.log(response.data)
       console.log(response.data);
+
       set({ user: response.data.user, checkingAuth: false });
     } catch (error) {
       console.log("Error in checkAuth : ", error.message);
-      set({ checkingAuth: false , user: null });
-      toast.error(error?.response?.data?.message || "Failed to check authentication");
+      set({ checkingAuth: false, user: null });
+      if (window.location.pathname !== "/login") {
+        toast.error(
+          error?.response?.data?.message || "Failed to check authentication"
+        );
+      }
     }
-  }
+  },
 }));

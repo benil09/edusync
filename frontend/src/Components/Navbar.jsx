@@ -18,27 +18,35 @@ export default function Navbar() {
 
           {/* Middle: Nav buttons */}
           <nav className="hidden md:flex flex-1 justify-center space-x-6 ">
-            <button
+            <Link
+              to="/courses"
               className="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm transition-colors"
               aria-label="Courses"
-              type="button"
             >
               Courses
-            </button>
-            <button
+            </Link>
+            <Link
+              to="/resources"
               className="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm transition-colors"
               aria-label="Resources"
-              type="button"
             >
               Resources
-            </button>
-            <button
+            </Link>
+            <Link
+              to="/about"
               className="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm transition-colors"
               aria-label="About"
-              type="button"
             >
               About
-            </button>
+            </Link>
+            <Link
+              to="/main"
+              className="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm transition-colors"
+              aria-label="About"
+            >
+              Main
+            </Link>
+
           </nav>
 
           {/* Right: Auth */}
