@@ -6,7 +6,6 @@ import Layout from "./Components/Layout.jsx";
 import Home from "./Pages/Home.jsx";
 import LoginPage from "./Pages/LoginPage.jsx";
 import SignupPage from "./Pages/SignupPage.jsx";
-import SignupPage2 from "./Pages/SignupPage2.jsx";
 import { useUserStore } from "./store/useUserStore.js";
 import MainPage from "./Pages/MainPage.jsx";
 import Notes from "./Pages/MainPages/Notes.jsx";
@@ -17,6 +16,7 @@ import Notification from "./Pages/MainPages/Notification.jsx";
 import Assignment from "./Pages/MainPages/Assignment.jsx";
 import Profile from "./Pages/MainPages/Profile.jsx";
 import Setting from "./Pages/MainPages/Setting.jsx";
+import Navbar from "./Components/Navbar.jsx";
 
 
 function App() {
@@ -43,7 +43,9 @@ function App() {
     );
   return (
     <>
+     
       <Routes>
+        
         <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/main" />} />
         <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/main" />} />
         <Route path="/" element={ <Home /> } />

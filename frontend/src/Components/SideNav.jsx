@@ -13,6 +13,7 @@ import {
   ArrowRight,
   ArrowLeft,
   LogOut,
+  Menu,
 } from "lucide-react";
 import { useUserStore } from "../store/useUserStore";
 
@@ -89,9 +90,9 @@ const SideNav = () => {
             return (
               <button
                 key={index}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md hover:bg-red-100 transition ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-md hover:bg-amber-100 transition ${
                   isActive
-                    ? "bg-orange-500 text-white"
+                    ? "bg-orange-500 text-white hover:bg-orange-600"
                     : "text-black"
                 }`}
                 onClick={() => {
@@ -108,7 +109,7 @@ const SideNav = () => {
       </div>
       {/* Logout Button at the bottom */}
       <div className="mt-auto">
-        <button onClick={logout} className="flex w-full items-center gap-3 px-3 py-2 rounded-md hover:bg-red-50 text-red-600 transition">
+        <button onClick={logout} className="flex w-full items-center gap-3 px-3 py-2 rounded-md hover:bg-red-100 text-red-600 transition">
           <LogOut className="w-5 h-5" />
           {isOpen && <span>Logout</span>}
         </button>
@@ -141,11 +142,12 @@ const SideNav = () => {
           onClick={() => setShowMore(!showMore)}
           className="flex flex-col items-center text-xs text-black"
         >
-          <Settings className="w-6 h-6" />
+            
+          <Menu className="w-6 h-6" />
           <span>More</span>
         </button>
         {showMore && (
-          <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-white shadow-md rounded-md p-2 flex flex-col gap-2">
+          <div className="absolute bottom-12 left-[2px] transform -translate-x-1/2 bg-white shadow-md rounded-md p-2 flex flex-col gap-2">
             {moreMenus.map((menu, index) => {
               const Icon = menu.icon;
               const isActive = activeMenu === menu.name;
