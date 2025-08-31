@@ -6,7 +6,6 @@ import {
   Eye,
   EyeOff,
   GraduationCap,
-  Hash,
   Loader,
   Lock,
   Mail,
@@ -14,7 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useUserStore } from "../store/useUserStore";
 
 const SignupPage = () => {
@@ -45,23 +44,26 @@ const SignupPage = () => {
 
     return true;
   };
-  const navigate = useNavigate();
+
   const { signup, loading } = useUserStore();
 
   async function handleSubmit(e) {
     e.preventDefault();
     const success = validate();
     if (success === true) {
-      await signup( formData.email,
-      formData.username,
-      formData.firstName,
-      formData.lastName,
-      formData.password,
-      formData.confirmPassword,
-      formData.year,
-      formData.branch,
-      formData.role);
+      await signup(
+        formData.email,
+        formData.username,
+        formData.firstName,
+        formData.lastName,
+        formData.password,
+        formData.confirmPassword,
+        formData.year,
+        formData.branch,
+        formData.role
+      );
     }
+    setFormData("");
   }
 
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -192,7 +194,6 @@ const SignupPage = () => {
                 required
                 className="flex-1 bg-transparent px-4 py-3 focus:outline-none focus:ring-0"
               />
-              
             </div>
 
             <div className="flex items-center bg-gray-200 rounded-xl">
@@ -209,17 +210,10 @@ const SignupPage = () => {
                   Select Role
                 </option>
                 <option value="student">student</option>
-                <option
-                  value="faculty
-                "
-                >
-                  faculty
-                </option>
+                <option value="faculty">faculty</option>
               </select>
               <ChevronDown className="mr-3 text-gray-500" size={20} />
             </div>
-
-            
 
             <div className="flex items-center bg-gray-200 rounded-xl">
               <Calendar className="ml-3 text-gray-500" size={20} />

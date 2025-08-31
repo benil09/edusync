@@ -1,23 +1,23 @@
+import { motion } from "framer-motion";
 import { Eye, EyeOff, Loader, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useUserStore } from "../store/useUserStore";
-import { motion } from "framer-motion";
 
 const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
 
-  const { login,loading} = useUserStore();
+  const { login, loading } = useUserStore();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     console.log(email, password);
-    login(email, password);
-   
-    
+    await login(email, password);
+    setEmail("");
+    setPassword("");
   };
 
   const togglePasswordVisibility = () => {
@@ -87,7 +87,10 @@ const LoginPage = () => {
               <div className="flex items-center justify-center">
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">
-                    <Loader className="h-5 w-5 animate-spin" aria-hidden="true" />
+                    <Loader
+                      className="h-5 w-5 animate-spin"
+                      aria-hidden="true"
+                    />
                     <span>Loading...</span>
                   </div>
                 ) : (
@@ -131,10 +134,7 @@ const LoginPage = () => {
       </motion.div>
 
       {/* Right Section (Hidden on small devices) */}
-      <div
-       
-        className="hidden md:flex w-1/2 relative bg-gradient-to-br from-primary via-theme to-secondary overflow-hidden"
-      >
+      <div className="hidden md:flex w-1/2 relative bg-gradient-to-br from-primary via-theme to-secondary overflow-hidden">
         {/* SVG Pattern Overlay */}
         <svg
           className="absolute inset-0 w-full h-full bg-opacity-20 pointer-events-none z-20"

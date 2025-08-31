@@ -113,7 +113,7 @@ export const signup = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
+//done ✅
 export const login = async (req, res) => {
   try {
     const { email, password, username } = req.body;
@@ -164,11 +164,11 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-export const logout = async (req,res) => {
-    try {
-      const refreshToken=req.cookies.refreshToken;
-      if (refreshToken) {
+//done ✅
+export const logout = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
       const decoded = jwt.verify(
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET
@@ -179,9 +179,17 @@ export const logout = async (req,res) => {
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
     res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.log("Error in logout controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
-    } catch (error) {
-      console.log("Error in logout controller", error.message);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
+export const profile = async (req, res) => {
+  try {
+    res.status(200).json({message:"Profile fetched successfully", user: req.user});
+  } catch (error) {
+    console.log("Error in profile controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
