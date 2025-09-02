@@ -41,7 +41,6 @@ const SignupPage = () => {
     if (formData.password !== formData.confirmPassword)
       return toast.error("Passwords do not match");
 
-
     return true;
   };
 
