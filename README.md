@@ -1,9 +1,10 @@
-# EduSync
 
-![EduSync Screenshot](../edusync/frontend/src/Assets/home.png)
-![EduSync Screenshot](../edusync/frontend/src/Assets/login.png)
+
 
 EduSync is a Unified Student Collaboration Hub designed to connect students and faculty within an academic institution. The platform provides a space to share resources, collaborate on projects, and communicate effectively.
+
+![EduSync HomePage](./frontend/src/Assets/home.png)
+![EduSync HomePage](./frontend/src/Assets/login.png)
 
 ## Features
 
