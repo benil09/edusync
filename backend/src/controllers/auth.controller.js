@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import cloudinary from "../config/cloudinary.config.js";
 import { redis } from "../config/redis.config.js";
 import User from "../models/user.model.js";
 
@@ -185,9 +186,39 @@ export const logout = async (req, res) => {
   }
 };
 
+export const updateProfile = async (req, res) => {
+  try {
+    const { profilePic } = req.file;
+    const { userId } = req.user._id;
+    if (!profilePic) {
+      return res.status(400).json({ message: "Profile pic is required" });
+    }
+
+    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    if (!uploadResponse) {
+      return res.status(500).json({ message: "Cloudinary upload failed" });
+    }
+
+    const updateUser = await User.findByIdAndUpdate(
+      userId,
+      { profilePic: uploadResponse.secure_url },
+      { new: true }
+    );
+
+    res
+      .status(200)
+      .json({ message: "Profile updated successfully", user: updateUser });
+  } catch (error) {
+    console.log("error in update profile:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const profile = async (req, res) => {
   try {
-    res.status(200).json({message:"Profile fetched successfully", user: req.user});
+    res
+      .status(200)
+      .json({ message: "Profile fetched successfully", user: req.user });
   } catch (error) {
     console.log("Error in profile controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });

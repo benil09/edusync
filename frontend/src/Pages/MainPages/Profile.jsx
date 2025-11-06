@@ -1,18 +1,55 @@
-import { ShieldCheck, Camera } from "lucide-react";
-import { useUserStore } from "../../store/useUserStore";
+import { Camera, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { useUserStore } from "../../store/useUserStore";
 
 const Profile = () => {
-  const { user } = useUserStore();
+  const { user, loading, updateProfile } = useUserStore();
   const [activeTab, setActiveTab] = useState("Posts");
+  const [profilePic, setProfilePic] = useState(user?.profilePic);
+  const [isUploading, setIsUploading] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <p className="text-gray-500">No user data available.</p>
+      </div>
+    );
+  }
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Set preview immediately
+    setProfilePic(URL.createObjectURL(file));
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("profilePic", file);
+      await updateProfile(formData);
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col md:flex-row md:space-x-10">
         {/* Left Section: Profile Picture and Basic Info */}
-        <div className="flex flex-col items-center md:items-start md:w-1/3">
-          <div className="relative mb-4">
+        <div className="flex flex-col  items-center md:items-start md:w-1/3">
+          <div className="relative border rounded-full mb-4">
             <img
-              src="https://randomuser.me/api/portraits/women/68.jpg"
+              src={profilePic}
               alt="Profile"
               className="w-32 h-32 rounded-full object-cover"
             />
@@ -20,13 +57,12 @@ const Profile = () => {
               className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow cursor-pointer flex items-center justify-center"
               title="Change profile picture"
             >
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-              />
+              <input type="file" onChange={handleFileChange} accept="image/*" className="hidden" disabled={isUploading} />
               <Camera size={18} className="text-gray-700" />
             </label>
+            {isUploading && (
+              <p className="text-xs text-gray-500 mt-1">Uploading...</p>
+            )}
           </div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-snug mb-1">
             {user.firstName} {user.lastName}
@@ -77,7 +113,6 @@ const Profile = () => {
                 <span className="text-sm sm:text-base text-gray-800 ml-2">
                   {user.branch}
                 </span>
-                
               </div>
               <div className="flex items-center col-span-2">
                 <span className="text-sm sm:text-base font-semibold text-gray-600">
@@ -86,7 +121,6 @@ const Profile = () => {
                 <span className="text-sm sm:text-base text-gray-800 ml-2">
                   {user.year}
                 </span>
-              
               </div>
               <div className="flex items-center col-span-2">
                 <span className="text-sm sm:text-base font-semibold text-gray-600">

@@ -48,10 +48,12 @@ export const useUserStore = create((set) => ({
       toast.error(error?.response?.data?.message || "Signup failed");
     }
   },
+
   login: async (email, password) => {
     set({ loading: true });
     try {
       const response = await axios.post("/auth/login", { email, password });
+      console.log(response);
       set({ user: response.data.user, loading: false });
       toast.success("Logged in successfully");
     } catch (error) {
@@ -59,6 +61,7 @@ export const useUserStore = create((set) => ({
       toast.error(error?.response?.data?.message || "Login failed");
     }
   },
+
   logout: async () => {
     set({ loading: true });
     try {
@@ -70,11 +73,11 @@ export const useUserStore = create((set) => ({
       toast.error(error?.response?.data?.message || "Logout failed");
     }
   },
+
   checkAuth: async () => {
     set({ checkingAuth: true });
     try {
       const response = await axios.get("/auth/profile");
-      console.log(response.data);
 
       set({ user: response.data.user, checkingAuth: false });
     } catch (error) {
@@ -85,6 +88,28 @@ export const useUserStore = create((set) => ({
           error?.response?.data?.message || "Failed to check authentication"
         );
       }
+    }
+  },
+
+  updateProfile: async (data) => {
+    set({ loading: true });
+    try {
+      console.log(1);
+      const res = await axios.put("/auth/update-profile", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log(2);
+      console.log(res.data);
+      set({ user: res.data.user || res.data });
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      set({ loading: false });
+      console.error("Error in updateProfile : ", error.message);
+      toast.error(error?.response?.data?.message || "Failed to update profile");
+    } finally {
+      set({ loading: false });
     }
   },
 }));

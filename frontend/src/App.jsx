@@ -29,7 +29,6 @@ function App() {
   }, [theme]);
 
   const { user, checkAuth,checkingAuth } = useUserStore();
-  console.log("User in App.jsx: ", user);
   useEffect(() => {
     checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
