@@ -41,7 +41,7 @@ export const useUserStore = create((set) => ({
 
       set({ user: response.data.user, loading: false });
       toast.success("Signup successful");
-      console.log(user);
+      
     } catch (error) {
       set({ loading: false });
       console.log("Error in signup store : ", error.response?.data);
@@ -53,6 +53,8 @@ export const useUserStore = create((set) => ({
     set({ loading: true });
     try {
       const response = await axios.post("/auth/login", { email, password });
+
+     
       console.log(response);
       set({ user: response.data.user, loading: false });
       toast.success("Logged in successfully");
@@ -77,17 +79,18 @@ export const useUserStore = create((set) => ({
   checkAuth: async () => {
     set({ checkingAuth: true });
     try {
-      const response = await axios.get("/auth/profile");
-
+      const response = await axios.get("/auth/profile", {
+        withCredentials: true,
+      });
       set({ user: response.data.user, checkingAuth: false });
     } catch (error) {
-      console.log("Error in checkAuth : ", error.message);
-      set({ checkingAuth: false, user: null });
-      if (window.location.pathname !== "/login") {
-        toast.error(
-          error?.response?.data?.message || "Failed to check authentication"
-        );
+            // silent fail for unauthenticated users
+      if (error?.response?.status === 401) {
+        set({ user: null, checkingAuth: false });
+        return;
       }
+      console.error("Auth check failed:", error);
+      set({ checkingAuth: false, user: null });
     }
   },
 

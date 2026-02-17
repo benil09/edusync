@@ -4,6 +4,7 @@ import express from "express";
 import connectDB from "./config/db.config.js";
 import authRoute from "./routes/auth.route.js";
 import cors from "cors";
+import { connectRedis } from "./config/redis.config.js";
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL || "http://localhost:5173"],
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true,
   })
 );
@@ -33,6 +34,7 @@ app.listen(port, () => {
 });
 
 connectDB()
+
   .then(() => {
     console.log("✅ Database connected successfully");
   })

@@ -24,6 +24,8 @@ const LoginPage = () => {
     setPasswordVisible(!passwordVisible);
   };
 
+  const hubX = 350, hubY = 400;
+
   return (
     <div className="flex h-screen">
       {/* Left Section */}
@@ -144,27 +146,65 @@ const LoginPage = () => {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <circle cx="150" cy="200" r="80" fill="white" fillOpacity="0.18" />
-          <circle cx="500" cy="600" r="120" fill="white" fillOpacity="0.13" />
-          <circle cx="450" cy="150" r="60" fill="white" fillOpacity="0.13" />
-          <circle cx="200" cy="650" r="40" fill="white" fillOpacity="0.10" />
-          <line
-            x1="0"
-            y1="400"
-            x2="600"
-            y2="400"
-            stroke="white"
-            strokeOpacity="0.07"
-            strokeWidth="4"
+          <motion.line
+            x1={hubX} y1={hubY} x2="150" y2="200"
+            stroke="orange" strokeOpacity="0.6" strokeWidth="3"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 2, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}
           />
-          <line
-            x1="300"
-            y1="0"
-            x2="300"
-            y2="800"
-            stroke="white"
-            strokeOpacity="0.07"
-            strokeWidth="4"
+          <motion.line
+            x1={hubX} y1={hubY} x2="450" y2="150"
+            stroke="orange" strokeOpacity="0.6" strokeWidth="3"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 2, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}
+          />
+          <motion.line
+            x1={hubX} y1={hubY} x2="500" y2="600"
+            stroke="orange" strokeOpacity="0.6" strokeWidth="3"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 2, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}
+          />
+          <motion.line
+            x1={hubX} y1={hubY} x2="200" y2="650"
+            stroke="orange" strokeOpacity="0.6" strokeWidth="3"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 2, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}
+          />
+
+          <motion.circle
+            cx={hubX} cy={hubY} r="25" fill="orange" fillOpacity="0.4"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.circle
+            cx={hubX} cy={hubY} r="8" fill="orange"
+            animate={{ opacity: [1, 0.4, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          <motion.circle
+            cx="150" cy="200" r="80" fill="white" fillOpacity="0.18"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.circle
+            cx="500" cy="600" r="120" fill="white" fillOpacity="0.13"
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.circle
+            cx="450" cy="150" r="60" fill="white" fillOpacity="0.13"
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.circle
+            cx="200" cy="650" r="40" fill="white" fillOpacity="0.10"
+            animate={{ y: [0, 5, 0] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
           />
         </svg>
         <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center z-10">

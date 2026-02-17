@@ -29,10 +29,13 @@ const SignupPage = () => {
     username: "",
   });
   const validate = () => {
-    if (!formData.firstName.trim())
-      return toast.error("First name is required");
-    if (!formData.lastName.trim()) return toast.error("Last name is required");
-    if (!formData.email.trim()) return toast.error("email is required");
+   if (!formData.firstName || !formData.firstName.trim()) {
+  return toast.error("First name is required");
+}
+    if (!formData.lastName || !formData.lastName.trim())
+      return toast.error("Last name is required");
+    if (!formData.email || !formData.email.trim())
+      return toast.error("email is required");
     if (!/\S+@\S+\.\S+/.test(formData.email))
       return toast.error("Invalid email format");
     if (!formData.password) return toast.error("password is required");
@@ -62,7 +65,17 @@ const SignupPage = () => {
         formData.role
       );
     }
-    setFormData("");
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      role: "",
+      year: "",
+      branch: "",
+      username: "",
+    });
   }
 
   const [passwordVisible, setPasswordVisible] = useState(false);

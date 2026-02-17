@@ -26,7 +26,16 @@ export const generateToken = (user) => {
 };
 
 export const storeRefreshToken = async (userId, refreshToken) => {
-  redis.set(`refreshToken:${userId}`, refreshToken, "EX", 60 * 60 * 24 * 7);
+  try {
+    if (!redis.isOpen) {
+      await redis.connect();
+      console.log("Redis auto-connected");
+    }
+
+    await redis.set(`refreshToken:${userId}`, refreshToken, "EX", 60 * 60 * 24 * 7);
+  } catch (err) {
+    console.error("Redis store token error:", err);
+  }
 };
 
 export const setCookie = (res, refreshToken, accessToken) => {
@@ -48,26 +57,8 @@ export const setCookie = (res, refreshToken, accessToken) => {
 // ✅ done
 export const signup = async (req, res) => {
   try {
-    const {
-      email,
-      username,
-      firstName,
-      role,
-      lastName,
-      password,
-      year,
-      branch,
-    } = req.body;
-    if (
-      !email ||
-      !username ||
-      !firstName ||
-      !lastName ||
-      !password ||
-      !year ||
-      !branch ||
-      !role
-    ) {
+    const {email,username,firstName,role,lastName,password,year,branch,} = req.body;
+    if (!email ||!username ||!firstName ||!lastName ||!password ||!year ||!branch ||!role) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -79,23 +70,13 @@ export const signup = async (req, res) => {
     const salted = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salted);
 
-    const user = new User({
-      username,
-      email,
-      firstName,
-      lastName,
-      role,
-      year,
-      branch,
-      password: hashedPassword,
-    });
+    const user = new User({username,email,firstName,lastName,role,year,branch,password: hashedPassword});
     await user.save();
 
     //Authentication
     const { refreshToken, accessToken } = generateToken(user);
     await storeRefreshToken(user._id, refreshToken);
     setCookie(res, refreshToken, accessToken);
-
     res.status(201).json({
       message: "User created successfully",
       user: {
