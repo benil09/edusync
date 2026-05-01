@@ -39,6 +39,10 @@ const userSchema = new schema({
     enum: ["student", "faculty"],
     default: "student",
   },
+  profilePic: {
+  type: String,
+  default: "",
+}
 });
 
 const User = mongoose.model("User", userSchema);

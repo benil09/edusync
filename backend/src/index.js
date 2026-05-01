@@ -3,14 +3,28 @@ import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./config/db.config.js";
 import authRoute from "./routes/auth.route.js";
+import chatRoute from "./routes/chat.route.js"
 import cors from "cors";
 import { connectRedis } from "./config/redis.config.js";
 
 dotenv.config();
 
-const app = express();
-app.use(express.json({limit:"10mb"}));
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
+import { app, server } from "./config/socket.config.js";
+
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+// Debug middleware to log request body issues
+app.use((req, res, next) => {
+  if (req.path === "/api/auth/update-profile") {
+    console.log("--- Update Profile Request Debug ---");
+    console.log("Method:", req.method);
+    console.log("Content-Type:", req.headers["content-type"]);
+    console.log("Body exists:", !!req.body);
+    console.log("-------------------------------------");
+  }
+  next();
+});
 app.use(cookieParser());
 app.use(
   cors({
@@ -21,6 +35,7 @@ app.use(
 
 // API routes
 app.use("/api/auth", authRoute);
+app.use("/api/chat", chatRoute)
 
 // Health check route
 app.get("/", (req, res) => {
@@ -29,13 +44,14 @@ app.get("/", (req, res) => {
 
 const port = process.env.PORT || 5001;
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV || "development"} mode on port: ${port}`);
 });
 
 connectDB()
 
-  .then(() => {
+  .then(async () => {
+    await connectRedis();
     console.log("✅ Database connected successfully");
   })
   .catch((err) => {

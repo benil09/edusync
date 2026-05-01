@@ -4,6 +4,9 @@ import jwt from "jsonwebtoken";
 import cloudinary from "../config/cloudinary.config.js";
 import { redis } from "../config/redis.config.js";
 import User from "../models/user.model.js";
+import { sendOTPEmail } from "../utils/mail.utils.js";
+import streamifier from "streamifier";
+
 
 dotenv.config();
 
@@ -54,17 +57,23 @@ export const setCookie = (res, refreshToken, accessToken) => {
   });
 };
 
-// ✅ done
 export const signup = async (req, res) => {
   try {
-    const {email,username,firstName,role,lastName,password,year,branch,} = req.body;
-    if (!email ||!username ||!firstName ||!lastName ||!password ||!year ||!branch ||!role) {
-      return res.status(400).json({ message: "All fields are required" });
+    // ✅ 2. verify OTP and save user
+    const {email,username,firstName,role,lastName,password,year,branch, otp} = req.body;
+    if (!email ||!username ||!firstName ||!lastName ||!password ||!year ||!branch ||!role || !otp) {
+      return res.status(400).json({ message: "All fields including OTP are required" });
     }
 
-    const existed = await User.findOne({ email });
+    // Verify OTP from Redis
+    const storedOTP = await redis.get(`otp:${email}`);
+    if (!storedOTP || storedOTP !== otp) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const existed = await User.findOne({ $or: [{ email }, { username }] });
     if (existed) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "User or Email already exists" });
     }
 
     const salted = await bcrypt.genSalt(10);
@@ -72,6 +81,9 @@ export const signup = async (req, res) => {
 
     const user = new User({username,email,firstName,lastName,role,year,branch,password: hashedPassword});
     await user.save();
+
+    // Remove OTP after successful signup
+    await redis.del(`otp:${email}`);
 
     //Authentication
     const { refreshToken, accessToken } = generateToken(user);
@@ -95,6 +107,148 @@ export const signup = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+// ✅ 1. otp generation (Signup Request)
+export const generateOTP = async (req, res) => {
+  try {
+    const { email, username } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email or Username already registered" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store OTP in Redis with 5 minute expiration
+    await redis.set(`otp:${email}`, otp, "EX", 300);
+
+    // Send OTP via email
+    try {
+      await sendOTPEmail(email, otp);
+    } catch (mailError) {
+      console.error("Email delivery failed:", mailError.message);
+      return res.status(500).json({ 
+        message: "Failed to send OTP email. Please ensure your email credentials are correct.",
+        error: mailError.message 
+      });
+    }
+
+    console.log(`Signup OTP for ${email}: ${otp}`);
+    res.status(200).json({ message: "OTP generated and sent to email" });
+
+  } catch (error) {
+    console.log("Error in generateOTP controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// ✅ 2. Generate OTP for Login (Passwordless)
+export const generateLoginOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found with this email" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store Login OTP in Redis with distinct key
+    await redis.set(`loginOtp:${email}`, otp, "EX", 300);
+
+    // Send OTP via email
+    await sendOTPEmail(email, otp);
+
+    console.log(`Login OTP for ${email}: ${otp}`);
+    res.status(200).json({ message: "Login OTP sent to email" });
+
+  } catch (error) {
+    console.log("Error in generateLoginOTP controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// ✅ 3. Login with OTP (Passwordless Verification)
+export const loginWithOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const storedOTP = await redis.get(`loginOtp:${email}`);
+    if (!storedOTP || storedOTP !== otp) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove OTP after successful login
+    await redis.del(`loginOtp:${email}`);
+
+    // Generate tokens
+    const { refreshToken, accessToken } = generateToken(user);
+    await storeRefreshToken(user._id, refreshToken);
+    setCookie(res, refreshToken, accessToken);
+
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        year: user.year,
+        role: user.role,
+        branch: user.branch,
+      },
+    });
+  } catch (error) {
+    console.log("Error in loginWithOTP controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+//otp verification
+export const verifyOTP = async (req,res) => {
+  try {
+      const {otp,email} = req.body;
+      if(!otp || !email){
+        return res.status(400).json({message:"Email and OTP are required"});
+      }
+      //  if (!redis.isOpen) {
+      //   await redis.connect();
+      //   console.log("Redis auto-connected");
+      // }
+      const storedOTP = await redis.get(`otp:${email}`);
+      if(storedOTP !== otp){
+        return res.status(400).json({message:"Invalid OTP"});
+      }
+
+      await redis.del(`otp:${email}`);
+      res.status(200).json({message:"OTP verified successfully"});
+
+  } catch (error) {
+    console.log("Error in verifyOTP controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+
 //done ✅
 export const login = async (req, res) => {
   try {
@@ -167,31 +321,59 @@ export const logout = async (req, res) => {
   }
 };
 
+
+
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.file;
-    const { userId } = req.user._id;
-    if (!profilePic) {
-      return res.status(400).json({ message: "Profile pic is required" });
+    let profilePic = req.body?.profilePic;
+    let uploadResponse;
+
+    if (req.file) {
+      // Handle Multipart File Upload
+      uploadResponse = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "eduSync/profile_pics",
+            resource_type: "auto",
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+    } else if (profilePic) {
+      // Handle Base64/JSON Upload
+      uploadResponse = await cloudinary.uploader.upload(profilePic, {
+        folder: "eduSync/profile_pics",
+        resource_type: "auto",
+      });
+    } else {
+      return res.status(400).json({ message: "Profile pic is required (either as a file or Base64 string)" });
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
-    if (!uploadResponse) {
+    if (!uploadResponse || !uploadResponse.secure_url) {
       return res.status(500).json({ message: "Cloudinary upload failed" });
     }
 
-    const updateUser = await User.findByIdAndUpdate(
+    const userId = req.user._id;
+    const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePic: uploadResponse.secure_url },
       { new: true }
-    );
+    ).select("-password");
 
-    res
-      .status(200)
-      .json({ message: "Profile updated successfully", user: updateUser });
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
   } catch (error) {
-    console.log("error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error in updateProfile controller:", error);
+    res.status(500).json({ 
+      message: "Internal server error during profile update",
+      error: error.message 
+    });
   }
 };
 
